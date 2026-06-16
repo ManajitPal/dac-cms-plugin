@@ -68,13 +68,13 @@ const serializePairs = (pairs: Pair[]) =>
 interface FormData {
   name: string; slug: string; category: string; status: string
   client: string; location: string; area: string
-  'project-summary': string; 'project-details': string
+  'project-summary': string
   'project-team': Pair[]; 'project-video': string
 }
 const EMPTY: FormData = {
   name: '', slug: '', category: '', status: '',
   client: '', location: '', area: '',
-  'project-summary': '', 'project-details': '',
+  'project-summary': '',
   'project-team': [newPair()], 'project-video': '',
 }
 
@@ -122,11 +122,15 @@ export default function App() {
     })
   }, [])
 
-  const reset = () => {
+  const clearForm = () => {
     setForm(EMPTY)
     setFiles(EMPTY_FILES)
-    setStatus({ type: 'idle' })
     if (galleryInputRef.current) galleryInputRef.current.value = ''
+  }
+
+  const reset = () => {
+    clearForm()
+    setStatus({ type: 'idle' })
   }
 
   const submit = async (e: React.FormEvent) => {
@@ -147,7 +151,7 @@ export default function App() {
       const serialized = serializePairs(form['project-team'])
       if (serialized) fieldData['project-team'] = serialized
 
-      const optional = ['status', 'client', 'location', 'area', 'project-summary', 'project-details', 'project-video'] as const
+      const optional = ['status', 'client', 'location', 'area', 'project-summary', 'project-video'] as const
       optional.forEach(k => { if (form[k].trim()) fieldData[k] = form[k].trim() })
 
       if (mainImageAsset) fieldData['main-project-image'] = { fileId: mainImageAsset.fileId, url: mainImageAsset.url, alt: '' }
@@ -161,8 +165,8 @@ export default function App() {
       })
       const data = await res.json()
       if (res.ok) {
+        clearForm()
         setStatus({ type: 'success', message: `"${(data as { fieldData: { name: string } }).fieldData.name}" created as draft` })
-        reset()
       } else {
         setStatus({ type: 'error', message: (data as { message?: string }).message ?? `Error ${res.status}` })
       }
@@ -250,16 +254,12 @@ export default function App() {
 
         <section className="section">
           <div className="section-title">Content</div>
-          <Field label="Project Intro">
+          <Field label="Project Details">
             <textarea className="input textarea" rows={3} value={form['project-summary']}
               placeholder="Brief description" onChange={e => set('project-summary', e.target.value)} />
           </Field>
-          <Field label="Project Details">
-            <textarea className="input textarea" rows={3} value={form['project-details']}
-              placeholder="Extended content" onChange={e => set('project-details', e.target.value)} />
-          </Field>
           <div className="field">
-            <label className="label">Project Team</label>
+            <label className="label">Project Credits</label>
             <div className="pairs">
               {form['project-team'].map(pair => (
                 <div key={pair.id} className="pair-row">
@@ -296,7 +296,10 @@ export default function App() {
           <Field label="Image Gallery">
             <input className="input input-file" type="file" accept="image/*" multiple
               ref={galleryInputRef}
-              onChange={e => { setFiles(prev => ({ ...prev, gallery: [...prev.gallery, ...Array.from(e.target.files ?? [])] })); e.target.value = '' }} />
+              onChange={e => {
+                const picked = Array.from(e.target.files ?? [])
+                setFiles(prev => ({ ...prev, gallery: [...prev.gallery, ...picked] }))
+              }} />
             {files.gallery.length > 0 && (
               <div className="gallery-thumbs">
                 {files.gallery.map((f, i) => (
