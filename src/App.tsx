@@ -297,9 +297,17 @@ export default function App() {
             <input className="input input-file" type="file" accept="image/*" multiple
               ref={galleryInputRef}
               onChange={e => {
+                console.log('[gallery] onChange fired')
+                console.log('[gallery] e.target.files:', e.target.files)
                 const picked = Array.from(e.target.files ?? [])
-                setFiles(prev => ({ ...prev, gallery: [...prev.gallery, ...picked] }))
+                console.log('[gallery] picked:', picked)
+                setFiles(prev => {
+                  const next = [...prev.gallery, ...picked]
+                  console.log('[gallery] setFiles → new gallery length:', next.length)
+                  return { ...prev, gallery: next }
+                })
               }} />
+            {console.log('[gallery] render — gallery length:', files.gallery.length)}
             {files.gallery.length > 0 && (
               <div className="gallery-thumbs">
                 {files.gallery.map((f, i) => (
