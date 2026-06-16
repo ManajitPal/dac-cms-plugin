@@ -40,7 +40,7 @@ async function computeMD5(file: File): Promise<string> {
 
 async function uploadAsset(file: File): Promise<{ fileId: string; url: string }> {
   const hash = await computeMD5(file)
-  const initRes = await fetch(`/api/proxy/v2/sites/${SITE_ID}/assets`, {
+  const initRes = await fetch(`/api/proxy?wfpath=v2/sites/${SITE_ID}/assets`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fileName: file.name, fileHash: hash }),
@@ -154,7 +154,7 @@ export default function App() {
       if (galleryAssets.length) fieldData['image-gallery'] = galleryAssets.map(a => ({ fileId: a.fileId, url: a.url, alt: '' }))
       if (projectFileAsset) fieldData['project-file'] = { fileId: projectFileAsset.fileId, url: projectFileAsset.url }
 
-      const res = await fetch(`/api/proxy/v2/collections/${COLLECTION_ID}/items`, {
+      const res = await fetch(`/api/proxy?wfpath=v2/collections/${COLLECTION_ID}/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fieldData, isDraft: true }),

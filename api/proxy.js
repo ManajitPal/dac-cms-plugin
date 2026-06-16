@@ -14,18 +14,17 @@ export default async function handler(req, res) {
   const token = cookies.wf_token
   if (!token) return res.status(401).json({ error: 'Not authenticated' })
 
-  const { path: pathParam, ...queryParams } = req.query
-  const pathStr = Array.isArray(pathParam) ? pathParam.join('/') : pathParam
-  const qs = new URLSearchParams(queryParams).toString()
-  const url = `https://api.webflow.com/${pathStr}${qs ? `?${qs}` : ''}`
+  const { wfpath, ...restQuery } = req.query
+  if (!wfpath) return res.status(400).json({ error: 'Missing wfpath' })
 
-  const isFormData = req.headers['content-type']?.includes('multipart/form-data')
+  const qs = new URLSearchParams(restQuery).toString()
+  const url = `https://api.webflow.com/${wfpath}${qs ? `?${qs}` : ''}`
 
   const wfRes = await fetch(url, {
     method: req.method,
     headers: {
       Authorization: `Bearer ${token}`,
-      ...(!isFormData && { 'Content-Type': 'application/json' }),
+      'Content-Type': 'application/json',
     },
     body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
   })
